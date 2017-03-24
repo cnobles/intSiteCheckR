@@ -1,0 +1,19 @@
+# This file contains descriptions of the validate_intsites program and options available for configuring the analysis.
+program_short_description : "Check integration site data for a specimen or group of specimens. Options not specified will default to configurations in config.yml. Additional options also available in config file."
+
+# The following are descriptions of options.
+specimen : "Specimen ID number(s) to analyze. ie. GTSP1322."
+position_ids : "Position ID(s) in the format of chr#[+-]position. These positions will be included in the output along with the most abundant clones, unless the '-e' option is used. i.e. chr9+93127900."
+position_ids_exclusively : "This option will only analyze sites within the position ID(s) given, +/- the fuzzy_window distance. As this option will lead to a condensed analysis, relative abundances will not be calculated."
+abundance_method : "Method for calculating clonal abundance. Defaults to config option. Available options include: readCount, uniqFragLength, sonicAbundance."
+num_of_clones : "Number of most abundant clones to return in summary."
+ref_genome : "Reference genome, i.e. hg38."
+intsite_database : "Group name for INSPIIRED integration site database."
+specimen_database : "Group name for a specimen management database with specimen information."
+fuzzy_window : "Window size for which to consider variation of a given position ID. This is applied only when position IDs are given as part of the input."
+cores : "Number of cores to parallel processes on. A value of 0 will not utilize the parallel package in R, while values greater than 0 will split appropriate processes to that number of maximum cores (up to the number of cores on the machine)."
+output : "By specifying an output file name, the summary data will be saved as a *.rds file, which can be quickly read into R using base::readRDS() and assigned to a variable. ie. -o GTSP1322_check -> GTSP1322_check.rds."
+
+# The following are messages that may appear if deviations from inputs occur due to errors in calculation methods.
+refGenesNotLoaded : "Ref_Genes not loaded. Please check config.yml for correct file path."
+sonicAbundFail : "Specimen abundance calculated by uniqFragLength due to errors in calculating by sonicAbundance. This may be due to one or more specimens having relatively few sites and breakpoints."

@@ -1,0 +1,60 @@
+# Parameters and configuration for intsite_validation
+
+# Reference genome to analyze against.
+ref_genome : hg38
+
+# Databases housing integration site data (INSPIIRED structure) and specimen
+# information (sql format). Group names connect to databases through additional
+# mysql config files.
+intsite_database : intsites_miseq
+specimen_database : specimen_management
+
+# Number of most abundant clones to return in summary. If fewer clones were 
+# present in the specimen, then all clones will be returned in the summary.
+num_of_top_clones : 10
+
+# Window parameters for refining breakpoints and standardizing integration site
+# positions. These numbers translate as the maximal distance between 
+# breakpoints or integration sites that will be considered to be grouped
+# together. This algorithm is based on peak and valley calling from the 
+# frequency of occurances. For more information on these methods, please look 
+# at the cnobles/gintools packages on GitHub.com.
+breakpoint_window : 3 #bp
+standardize_window : 5 #bp 
+
+# The fuzzy window parameter is a +/- range for using position ids as inputs
+# or specifiers for which integration sites to analyze and return.
+fuzzy_window : 5 #bp
+
+# Determine abundances for integration sites using either read counts, unique
+# fragment lengths, or the SonicAbundance method for also estimating unseen 
+# populations. This configuration option is overwritten if specified on the
+# command line when calling validate_intsites.R.
+# Options are: readCount, uniqFragLength, sonicAbundance
+abundance_method : uniqFragLength
+
+# Gene lists for onco-related genes and bad actors
+oncogene_list : "http://bushmanlab.org/assets/doc/allOnco_Feb2017.tsv"
+bad_actor_list : "http://bushmanlab.org/assets/doc/humanLymph.tsv"
+ref_genes_path : "~/dev/util_files/hg38.refSeq.rds"
+
+# Parallel processing may dramatically speed up the analysis of a given specimen
+# or set of specimens. The variable 'cores' can be modified to increase the 
+# number of cores processes will be distributed to. There are limits inherent to
+# processing this type of data. Breakpoint refinement needs to currently be done
+# on independent replicates (typically 4 per specimen), where integration site
+# standardizing is conducted for all specimens for a given patient. Therefore if
+# two specimens (with 4 replicates each) are from the same patient, the max 
+# cores used for breakpoint refinement is 8, while only 1 can be used during
+# integration site standardizing. Updating the methods and algorithms for these
+# steps may change this in the future. A value of 0 will not take advantage of 
+# the parallel package in R, where any value greater than 0 will use that many
+# cores (up to the maximum number of cores associated with the machine).
+cores : 0
+
+# The following arguments are to modify what is printed to the screen during 
+# processing. These include inputs, processing parameters, and summary data.
+print_inputs : TRUE
+print_params : TRUE
+print_deviations: TRUE
+print_summary : TRUE
