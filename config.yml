@@ -13,13 +13,22 @@ specimen_database : specimen_management
 # present in the specimen, then all clones will be returned in the summary.
 num_of_top_clones : 10
 
-# Window parameters for refining breakpoints and standardizing integration site
-# positions. These numbers translate as the maximal distance between 
-# breakpoints or integration sites that will be considered to be grouped
-# together. This algorithm is based on peak and valley calling from the 
-# frequency of occurances. For more information on these methods, please look 
-# at the cnobles/gintools packages on GitHub.com.
+# Breakpoint refinement can help correct possible miss alignment errors at the 
+# ends of reads that arrize from PCR or sequencing error, a leading cause of 
+# inflated measurements for uniqFragLength and sonicAbundance calculations.
+# Standardizing integration site positions within a specimen can help correct
+# the same errors associated with breakpoints but can additionally help with 
+# tracking clones across various specimens, as it's possible an integration 
+# site may be called differently in two specimens, thought the distance is 
+# minor. Window parameters for refining breakpoints and standardizing 
+# integration site positions. These numbers translate as the maximal distance
+# between breakpoints or integration sites that will be considered to be 
+# grouped together. This algorithm is based on peak and valley calling from 
+# the frequency of occurances. For more information on these methods, please 
+# look at the cnobles/gintools packages on GitHub.com.
+breakpoint_refinement : TRUE
 breakpoint_window : 3 #bp
+standardize_intsite_positions : TRUE
 standardize_window : 5 #bp 
 
 # The fuzzy window parameter is a +/- range for using position ids as inputs

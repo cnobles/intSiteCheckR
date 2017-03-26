@@ -1,4 +1,4 @@
-# This file contains descriptions of the validate_intsites program and options available for configuring the analysis.
+# This file contains descriptions of the intSiteChecker program and options available for configuring the analysis.
 program_short_description : "Check integration site data for a specimen or group of specimens. Options not specified will default to configurations in config.yml. Additional options also available in config file."
 
 # The following are descriptions of options.

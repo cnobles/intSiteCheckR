@@ -10,33 +10,38 @@ process_intsite_data <- function(uniq_sites_data, specimen_data, args,
     specimen_data[,c("patient", "celltype", "timepoint", "specimenaccnum")],
     by = c("gtsp" = "specimenaccnum"))
 
-  process_data <- split(uniq_sites_data, uniq_sites_data$sampleName)
+  process_data <- uniq_sites_data
   
   #' Refine breakpoints for each replicate independently
-  process_data <- unname(unlist(GRangesList(lapply(
-    process_data, 
-    function(sites, max_gap){
-      sites <- db_to_granges(sites)
-      mcols(sites) <- mcols(sites)[,c("samplename", "specimen", "patient", 
-                                      "celltype", "timepoint", "count")]
-      sites <- suppressMessages(
-        refine_breakpoints(sites, sata.gap = max_gap, counts = "count"))
-      sites$called.bp <- sites$adj.bp <- NULL
-      unique_granges(sites, sum.counts = TRUE, counts.col = "count")
-      }, max_gap = config$breakpoint_window
-  ))))
+  if(config$breakpoint_refinement){
+    process_data <- split(uniq_sites_data, uniq_sites_data$sampleName)
+    process_data <- unname(unlist(GRangesList(lapply(
+      process_data, 
+      function(sites, max_gap){
+        sites <- db_to_granges(sites)
+        mcols(sites) <- mcols(sites)[,c("samplename", "specimen", "patient", 
+                                        "celltype", "timepoint", "count")]
+        sites <- suppressMessages(
+          refine_breakpoints(sites, sata.gap = max_gap, counts = "count"))
+        sites$called.bp <- sites$adj.bp <- NULL
+        unique_granges(sites, sum.counts = TRUE, counts.col = "count")
+        }, max_gap = config$breakpoint_window
+    ))))
+  }
   
   #' Standardize integration site positions across each patient
-  process_data <- split(process_data, process_data$patient)
-  process_data <- unname(unlist(GRangesList(lapply(
-    process_data, 
-    function(sites, max_gap){
-      sites <- suppressMessages(
-        standardize_intsites(sites, sata.gap = max_gap))
-      sites$clusID <- sites$called.pos <- sites$adj.pos <- NULL
-      unique_granges(sites, sum.counts = TRUE, counts.col = "count")
-    }, max_gap = config$standardize_window
-  ))))
+  if(config$standardize_intsite_positions){
+    process_data <- split(process_data, process_data$patient)
+    process_data <- unname(unlist(GRangesList(lapply(
+      process_data, 
+      function(sites, max_gap){
+        sites <- suppressMessages(
+          standardize_intsites(sites, sata.gap = max_gap))
+        sites$clusID <- sites$called.pos <- sites$adj.pos <- NULL
+        unique_granges(sites, sum.counts = TRUE, counts.col = "count")
+      }, max_gap = config$standardize_window
+    ))))
+  }
   
   #' Condense the data to integration site locations and determine each clone's 
   #' abundance by the specified method.

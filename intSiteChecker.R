@@ -1,4 +1,4 @@
-#' Validate integration site data with a quick commandline script. The script
+#' Check specific integration site data with a commandline script. The script
 #' connects to an INSPIIRED database, acquires all integration sites for the 
 #' single specimen (GTSP????), refines breakpoints, standardizes integration
 #' site positions, annotates against current onco-related gene and bad actor 
@@ -57,6 +57,7 @@ parser$add_argument(
 #' Dev command
 #cmdline <- c("GTSP0518", "GTSP0853", "GTSP1322", "-p", "chr12-4270498", "-e")
 #args <- parser$parse_args(cmdline)
+
 args <- parser$parse_args(commandArgs(trailingOnly = TRUE))
 args$specimen <- unique(unlist(strsplit(args$specimen, " ")))
 if(length(args$position_ids) > 0){
