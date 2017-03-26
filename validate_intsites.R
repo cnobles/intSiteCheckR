@@ -55,7 +55,7 @@ parser$add_argument(
   "-o", "--output", nargs = 1, type = "character", help = descript$output)
 
 #' Dev command
-#cmdline <- c("GTSP1322", "-o","test")
+#cmdline <- c("GTSP0518", "GTSP0853", "GTSP1322", "-p", "chr12-4270498", "-e")
 #args <- parser$parse_args(cmdline)
 args <- parser$parse_args(commandArgs(trailingOnly = TRUE))
 args$specimen <- unique(unlist(strsplit(args$specimen, " ")))
@@ -141,7 +141,9 @@ rm(query, query_condition, query_selection, meta_cols, dbConn)
 #' Print specimen information to the console
 if(config$print_summary){
   pandoc.title("Specimen Summary")
-  pandoc.table(t(specimen_data), justify = c("left", "center"))}
+  pandoc.table(
+    t(specimen_data), justify = c("left", rep("center", length(args$specimen))))
+}
 
 #' Download integration sites from INSPIIRED database
 dbConn <- dbConnect(MySQL(), group = args$intsite_database)
@@ -182,7 +184,7 @@ gene_references <- list(
 
 #' If exclusively processing integration sites for specific position ids, then
 #' the uniq_sites_data needs to be filtered for sites near the input ids. 
-if(length(args$position_ids) > 0 & args$position_ids_exclusively){
+if(length(args$position_ids) > 0){
   chr_pos <- strsplit(args$position_ids, "[+-]", perl = TRUE)
   strands <- ifelse(grepl("+", args$position_ids, fixed = TRUE), "+", "-")
   posids <- data.frame(
@@ -191,18 +193,19 @@ if(length(args$position_ids) > 0 & args$position_ids_exclusively){
     "position" = as.numeric(sapply(chr_pos, "[[", 2)))
   posids$min_position <- posids$position - args$fuzzy_window
   posids$max_position <- posids$position + args$fuzzy_window
-  
-  select_sites <- do.call(
-    rbind, 
-    lapply(1:nrow(posids), function(i, data, posids){
-      data[
-        data$chr == posids[i, "chr"] & 
-        data$strand == posids[i, "strand"] & 
-        data$position >= posids[i, "min_position"] & 
-        data$position <= posids[i, "max_position"],]
-  }, data = uniq_sites_data, posids = posids))
-  
-  uniq_sites_data <- unique(select_sites)
+  if(args$position_ids_exclusively){
+    select_sites <- do.call(
+      rbind, 
+      lapply(1:nrow(posids), function(i, data, posids){
+        data[
+          data$chr == posids[i, "chr"] & 
+          data$strand == posids[i, "strand"] & 
+          data$position >= posids[i, "min_position"] & 
+          data$position <= posids[i, "max_position"],]
+    }, data = uniq_sites_data, posids = posids))
+    
+    uniq_sites_data <- unique(select_sites)
+  }
 }
 
 #' Process integration sites for analysis. This step includes refining 
@@ -212,40 +215,61 @@ sites <- process_intsite_data(
   uniq_sites_data, specimen_data, args, config, gene_references)
 
 #' Print summary table(s) of the top clones or position ids
-if(class(gene_references$ref_genes) != "try-error"){
-  summary_table <- GenomicRanges::as.data.frame(sites$sites_final) %>%
-    select(patient, timepoint, celltype, specimen, 
-           estAbund, relAbund, posID, gene_id) %>%
-    mutate(relAbund = round(relAbund, digits = 3)) %>%
-    group_by(specimen) %>%
-    top_n(n = ifelse(args$num_of_clones == 0, nrow(.), args$num_of_clones), 
-          estAbund)
+summary_table <- GenomicRanges::as.data.frame(sites$sites_final) %>%
+  select(-seqnames, -start, -end, -width, -strand, -in_gene, -in_geneOrt, 
+         -nearest_geneDist, -nearest_gene, -nearest_geneOrt, -gene_id_wo_mark,
+         -gene_mark) %>%
+  group_by(specimen) %>%
+  top_n(n = ifelse(args$num_of_clones == 0, nrow(.), args$num_of_clones), 
+        estAbund) %>%
+  ungroup()
   
-  if(length(args$position_ids) > 0){
-    posid_table <- do.call(rbind, lapply(
-      1:nrow(posids), function(i, data, posids){
-        data_chr_pos <- strsplit(data$posID, "[+-]", perl = TRUE)
-        data_strands <- ifelse(grepl("+", data$posID, fixed = TRUE), "+", "-")
-        data_posids <- data.frame(
-          "chr" = sapply(data_chr_pos, "[[", 1),
-          "strand" = data_strands,
-          "position" = sapply(data_chr_pos, "[[", 2)
-        )
-        ids_to_keep <- which(data_posids$chr == posids[i, "chr"] &
-                             data_posids$strand == posids[i, "strand"] &
-                             data_posids$position >= posids[i, "min_position"] &
-                             data_posids$position <= posids[i, "max_position"])
-        data[ids_to_keep,]
-      }, data = summary_table, posids = posids))
-    
-    summary_table <- distinct(bind_rows(posid_table, summary_table))
-  }
+if(!args$position_ids_exclusively){
+  summary_table <- mutate(
+    summary_table, relAbund = round(relAbund, digits = 3))
+}
+
+if(class(ref_genes) == "try-error"){
+  summary_table <- mutate(
+    summary_table, gene_id = rep(NA, n()))
+}
+
+if(length(args$position_ids) > 0){
+  posid_table <- do.call(rbind, lapply(
+    1:nrow(posids), function(i, data, posids){
+      data_chr_pos <- strsplit(data$posID, "[+-]", perl = TRUE)
+      data_strands <- ifelse(grepl("+", data$posID, fixed = TRUE), "+", "-")
+      data_posids <- data.frame(
+        "chr" = sapply(data_chr_pos, "[[", 1),
+        "strand" = data_strands,
+        "position" = sapply(data_chr_pos, "[[", 2)
+      )
+      ids_to_keep <- which(data_posids$chr == posids[i, "chr"] &
+                           data_posids$strand == posids[i, "strand"] &
+                           data_posids$position >= posids[i, "min_position"] &
+                           data_posids$position <= posids[i, "max_position"])
+      data[ids_to_keep,]
+    }, data = summary_table, posids = posids))
   
-  summary_table <- split(summary_table, summary_table$specimen)
+  summary_table <- distinct(bind_rows(posid_table, summary_table))
+}
   
+summary_table <- split(summary_table, summary_table$specimen)
+  
+if(!args$position_ids_exclusively){
   tables <- lapply(summary_table, function(sum_tab){
     title_cols <- c("patient", "timepoint", "celltype", "specimen")
     table_cols <- c("gene_id", "posID", "estAbund", "relAbund")
+    col_nums <- match(title_cols, names(sum_tab))
+    pandoc.title(paste0(paste(sum_tab[1, title_cols], collapse = " - "), "\n", 
+                        "Most Abundant Clones within Specimen ", 
+                        unique(sum_tab$specimen)))
+    pandoc.table(arrange(sum_tab[, table_cols], desc(estAbund)))
+  })
+}else{
+  tables <- lapply(summary_table, function(sum_tab){
+    title_cols <- c("patient", "timepoint", "celltype", "specimen")
+    table_cols <- c("gene_id", "posID", "estAbund")
     pandoc.title(paste0(paste(sum_tab[1, title_cols], collapse = " - "), "\n", 
                         "Most Abundant Clones within Specimen ", 
                         unique(sum_tab$specimen)))
@@ -253,8 +277,8 @@ if(class(gene_references$ref_genes) != "try-error"){
   })
 }
 
-if(length(args$output) > 0) saveRDS(sites, file = paste0(args$output, ".rds"))
+if(length(args$output) > 0){
+  sites$summary_table <- bind_rows(summary_table)
+  saveRDS(sites, file = paste0(args$output, ".rds"))
+}
 q()
-
-
-
