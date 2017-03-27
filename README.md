@@ -66,7 +66,7 @@ Rscript ~/path/to/intSiteChecker.R GTSP0397 -p chr19-28833957 chr17+2825892 -e
 
 **specimen database** [-s, --specimen_database] Group name for a specimen management database with specimen information.
 
-**cores** [-c, --cores] Number of cores to parallel processes on. A value of 0 will not utilize the parallel package in R, while values greater than 0 will split appropriate processes to that number of maximum cores (up to the number of cores on the machine). !This feature is currently not available.
+**cores** [-c, --cores] Number of cores to parallel processes on. A value of 0 will not utilize the parallel package in R, while values greater than 0 will split appropriate processes to that number of maximum cores (up to the number of cores on the machine).
 
 **output file** [-o, --output] By specifying an output file name, the analysis and summary data will be saved as a *.rds file, which can be quickly read into R using base::readRDS() and assigned to a variable. ie. -o GTSP1322_check -> GTSP1322_check.rds.
 
