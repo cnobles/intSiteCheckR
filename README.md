@@ -32,7 +32,7 @@ Most Abundant Clones within Specimen GTSP0927
 
   ATCK3 *~    chr21+65492731     304       0.040
 ---------------------------------------------------
-\*Note: This data has been scrambled from the original output, only used as an example.
+*Note: This data has been scrambled from the original output, only used as an example.
 ```
 Further, several specimen numbers can be given to intSiteChecker, which will return a series of tables with the most abundant clones from each specimen. 
 ```
