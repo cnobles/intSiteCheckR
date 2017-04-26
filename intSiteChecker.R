@@ -270,12 +270,12 @@ summary_table <- GenomicRanges::as.data.frame(sites$sites_final) %>%
   ungroup()
   
 if(!args$position_ids_exclusively){
-  summary_table <- mutate(
+  summary_table <- dplyr::mutate(
     summary_table, relAbund = round(relAbund, digits = 3))
 }
 
 if(class(ref_genes) == "try-error"){
-  summary_table <- mutate(
+  summary_table <- dplyr::mutate(
     summary_table, gene_id = rep(NA, n()))
 }
 
