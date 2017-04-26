@@ -8,7 +8,7 @@ git clone https://github.com/cnobles/intSiteChecker.git
 ```
 
 ## Brief Overview
-Using a specimen or list of specimens, intSiteChecker downloads all unique integration site data from a specified INSPIIRED database (currently only supporting MySQL, update to sql-lite soon to come). The data is then processed by breakpoint refinement methods and integration standardization methods before calculationg clonal abundances. The data is then filtered to the most abundant clones and returned in a short table to the user.
+Using a specimen or list of specimens, intSiteChecker downloads all unique integration site data from a specified INSPIIRED database (either MySQL and/or SQLite, modify in configuration file). The data is then processed by breakpoint refinement methods and integration standardization methods before calculationg clonal abundances. The data is then filtered to the most abundant clones and returned in a short table to the user.
 
 ## Using intSiteChecker
 There are various features to intSiteChecker than allow it to serve multiple rolls. By default, given a single specimen number, intSiteChecker will return the top 10 most abundant clones in a short summary table, as show below:

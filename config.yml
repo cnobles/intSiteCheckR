@@ -4,9 +4,12 @@
 ref_genome : hg38
 
 # Databases housing integration site data (INSPIIRED structure) and specimen
-# information (sql format). Group names connect to databases through additional
-# mysql config files.
+# information (sql format). Database types include 'mysql' or 'sqlite'. For 
+# mysql connections, group names connect to databases through additional config 
+# files.
+intsite_db_type : mysql
 intsite_database : intsites_miseq
+specimen_db_type : mysql
 specimen_database : specimen_management
 
 # Number of most abundant clones to return in summary. If fewer clones were 

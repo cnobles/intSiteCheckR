@@ -110,8 +110,8 @@ if(config$print_inputs){
 }
 
 #' Load additional dependencies
-add_dependencies <- c("RMySQL", "GenomicRanges", "dplyr", 
-                      "hiAnnotator", "sonicLength", "gintools")
+add_dependencies <- c("GenomicRanges", "dplyr", "hiAnnotator", 
+                      "sonicLength", "gintools")
 
 null <- suppressMessages(
   sapply(add_dependencies, library, character.only = TRUE))
@@ -119,9 +119,24 @@ null <- suppressMessages(
 rm(null)
 
 #' Download specimen information from specimen database
-junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
-dbConn <- dbConnect(MySQL(), group = args$specimen_database)
-stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
+if(config$specimen_db_type == "mysql"){
+  pack <- suppressMessages(require("RMySQL"))
+  if(!pack) stop("Could not load MySQL package.")
+  junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
+  dbConn <- dbConnect(MySQL(), group = args$specimen_database)
+  stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
+  rm(pack)
+}else if(config$specimen_db_type == "sqlite"){
+  pack <- suppressMessages(require("SQLite"))
+  if(!pack) stop("Could not load SQLite package.")
+  junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
+  dbConn <- dbConnect(SQLite(), group = args$specimen_database)
+  stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
+  rm(pack)
+}else{
+  stop("Could not establish a specimen database connection. 
+       Check config for database type ('mysql' or 'sqlite').")
+}
 
 meta_cols <- c("Trial", "Patient", "CellType",
                "Timepoint", "VCN", "SpecimenAccNum")
@@ -136,7 +151,13 @@ query <- paste(query_selection, query_condition, sep = " ")
 specimen_data <- dbGetQuery(dbConn, query)
 names(specimen_data) <- tolower(names(specimen_data))
 
-junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
+if(config$specimen_db_type == "mysql"){
+  junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
+  detach("package:RMySQL")
+}else if(config$specimen_db_type == "sqlite"){
+  junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
+  detach("package:SQLite")
+}
 rm(query, query_condition, query_selection, meta_cols, dbConn)
 
 #' Print specimen information to the console
@@ -147,8 +168,22 @@ if(config$print_summary){
 }
 
 #' Download integration sites from INSPIIRED database
-dbConn <- dbConnect(MySQL(), group = args$intsite_database)
-stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
+if(config$intsite_db_type == "mysql"){
+  pack <- suppressMessages(require("RMySQL"))
+  if(!pack) stop("Could not load MySQL package.")
+  dbConn <- dbConnect(MySQL(), group = args$intsite_database)
+  stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
+  rm(pack)
+}else if(config$insite_db_type == "sqlite"){
+  pack <- suppressMessages(require("SQLite"))
+  if(!pack) stop("Could not load SQLite package.")
+  dbConn <- dbConnect(SQLite(), group = args$intsite_database)
+  stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
+  rm(pack)
+}else{
+  stop("Could not establish a intsite database connection. 
+       Check config for database type ('mysql' or 'sqlite').")
+}
 
 query_uniq <- sprintf("SELECT * FROM samples
       JOIN sites ON samples.sampleID = sites.sampleID
@@ -159,8 +194,14 @@ query_uniq <- sprintf("SELECT * FROM samples
 
 uniq_sites_data <- dbGetQuery(dbConn, query_uniq)
 
-junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
-rm(dbConn, query_uniq, specimen_cond, junk)
+if(config$intsite_db_type == "mysql"){
+  junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
+  detach("package:RMySQL")
+}else if(config$intsite_db_type == "sqlite"){
+  junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
+  detach("package:SQLite")
+}
+rm(query, query_condition, query_selection, meta_cols, dbConn)
 
 #' Gather reference materials: onco-related gene list, bad actors, ref_genes
 ref_genes <- suppressWarnings(try(
