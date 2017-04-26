@@ -176,7 +176,7 @@ if(config$intsite_db_type == "mysql"){
   dbConn <- dbConnect(MySQL(), group = args$intsite_database)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
-}else if(config$insite_db_type == "sqlite"){
+}else if(config$intsite_db_type == "sqlite"){
   pack <- suppressMessages(require("RSQLite"))
   if(!pack) stop("Could not load SQLite package.")
   dbConn <- dbConnect(SQLite(), dbname = args$intsite_database)
