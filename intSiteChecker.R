@@ -43,12 +43,6 @@ parser$add_argument(
   "-r", "--ref_genome", type = "character", default = config$ref_genome,
   help = descript$ref_genome)
 parser$add_argument(
-  "-i", "--intsite_database", type = "character", 
-  default = config$intsite_database, help = descript$intsite_database)
-parser$add_argument(
-  "-s", "--specimen_database", type = "character", 
-  default = config$specimen_database, help = descript$specimen_database)
-parser$add_argument(
   "-c", "--cores", type = "integer", default = config$cores,
   help = descript$cores)
 parser$add_argument(
@@ -60,6 +54,13 @@ parser$add_argument(
 
 args <- parser$parse_args(commandArgs(trailingOnly = TRUE))
 args$specimen <- unique(unlist(strsplit(args$specimen, " ")))
+args$specimen_database <- ifelse(
+  config$specimen_db_type == "mysql",
+  config$specimen_db_group, config$specimen_db_name)
+args$intsite_database <- ifelse(
+  config$intsite_db_type == "mysql",
+  config$intsite_db_group, config$intsite_db_name)
+
 if(length(args$position_ids) > 0){
   args$position_ids <- unique(unlist(strsplit(args$position_ids, " ")))}
 args <- args[c("specimen", "position_ids", "position_ids_exclusively", 
@@ -123,14 +124,14 @@ if(config$specimen_db_type == "mysql"){
   pack <- suppressMessages(require("RMySQL"))
   if(!pack) stop("Could not load MySQL package.")
   junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
-  dbConn <- dbConnect(MySQL(), group = args$specimen_db_group)
+  dbConn <- dbConnect(MySQL(), group = args$specimen_database)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
 }else if(config$specimen_db_type == "sqlite"){
   pack <- suppressMessages(require("RSQLite"))
   if(!pack) stop("Could not load SQLite package.")
   #junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
-  dbConn <- dbConnect(SQLite(), dbname = args$specimen_db_name)
+  dbConn <- dbConnect(SQLite(), dbname = args$specimen_database)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
 }else{
@@ -171,13 +172,13 @@ if(config$print_summary){
 if(config$intsite_db_type == "mysql"){
   pack <- suppressMessages(require("RMySQL"))
   if(!pack) stop("Could not load MySQL package.")
-  dbConn <- dbConnect(MySQL(), group = args$intsite_db_group)
+  dbConn <- dbConnect(MySQL(), group = args$intsite_database)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
 }else if(config$insite_db_type == "sqlite"){
   pack <- suppressMessages(require("RSQLite"))
   if(!pack) stop("Could not load SQLite package.")
-  dbConn <- dbConnect(SQLite(), dbname = args$intsite_db_name)
+  dbConn <- dbConnect(SQLite(), dbname = args$intsite_database)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
 }else{
