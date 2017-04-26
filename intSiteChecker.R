@@ -123,14 +123,14 @@ if(config$specimen_db_type == "mysql"){
   pack <- suppressMessages(require("RMySQL"))
   if(!pack) stop("Could not load MySQL package.")
   junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
-  dbConn <- dbConnect(MySQL(), group = args$specimen_database)
+  dbConn <- dbConnect(MySQL(), group = args$specimen_db_group)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
 }else if(config$specimen_db_type == "sqlite"){
-  pack <- suppressMessages(require("SQLite"))
+  pack <- suppressMessages(require("RSQLite"))
   if(!pack) stop("Could not load SQLite package.")
   junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
-  dbConn <- dbConnect(SQLite(), group = args$specimen_database)
+  dbConn <- dbConnect(SQLite(), dbname = args$specimen_db_name)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
 }else{
@@ -156,7 +156,7 @@ if(config$specimen_db_type == "mysql"){
   detach("package:RMySQL")
 }else if(config$specimen_db_type == "sqlite"){
   junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
-  detach("package:SQLite")
+  detach("package:RSQLite")
 }
 rm(query, query_condition, query_selection, meta_cols, dbConn)
 
@@ -171,13 +171,13 @@ if(config$print_summary){
 if(config$intsite_db_type == "mysql"){
   pack <- suppressMessages(require("RMySQL"))
   if(!pack) stop("Could not load MySQL package.")
-  dbConn <- dbConnect(MySQL(), group = args$intsite_database)
+  dbConn <- dbConnect(MySQL(), group = args$intsite_db_group)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
 }else if(config$insite_db_type == "sqlite"){
-  pack <- suppressMessages(require("SQLite"))
+  pack <- suppressMessages(require("RSQLite"))
   if(!pack) stop("Could not load SQLite package.")
-  dbConn <- dbConnect(SQLite(), group = args$intsite_database)
+  dbConn <- dbConnect(SQLite(), dbname = args$intsite_db_name)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
 }else{
@@ -199,7 +199,7 @@ if(config$intsite_db_type == "mysql"){
   detach("package:RMySQL")
 }else if(config$intsite_db_type == "sqlite"){
   junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
-  detach("package:SQLite")
+  detach("package:RSQLite")
 }
 rm(query, query_condition, query_selection, meta_cols, dbConn)
 
