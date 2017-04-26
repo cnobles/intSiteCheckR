@@ -111,7 +111,7 @@ if(config$print_inputs){
 
 #' Load additional dependencies
 add_dependencies <- c("GenomicRanges", "dplyr", "hiAnnotator", 
-                      "sonicLength", "gintools")
+                      "sonicLength", "gintools", "DBI")
 
 null <- suppressMessages(
   sapply(add_dependencies, library, character.only = TRUE))
