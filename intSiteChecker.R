@@ -190,7 +190,7 @@ if(config$intsite_db_type == "mysql"){
 query_uniq <- sprintf("SELECT * FROM samples
       JOIN sites ON samples.sampleID = sites.sampleID
       JOIN pcrbreakpoints ON pcrbreakpoints.siteID = sites.siteID
-      WHERE LEFT(samples.sampleName, INSTR(samples.sampleName, '-')-1)
+      WHERE SUBSTR(samples.sampleName, 1, INSTR(samples.sampleName, '-')-1)
       IN ('%1$s')",
       specimen_cond)
 
