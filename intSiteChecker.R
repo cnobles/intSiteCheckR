@@ -144,11 +144,12 @@ meta_cols <- c("Trial", "Patient", "CellType",
 query_selection <- paste(
   "SELECT",
   paste(meta_cols, collapse = ", "),
-  "FROM specimen_management.gtsp",
+  "FROM gtsp",
   sep = " ")
 specimen_cond <- paste(args$specimen, collapse = "', '")
 query_condition <- paste0("WHERE SpecimenAccNum IN ('", specimen_cond, "')")
 query <- paste(query_selection, query_condition, sep = " ")
+message(query)
 specimen_data <- dbGetQuery(dbConn, query)
 names(specimen_data) <- tolower(names(specimen_data))
 
@@ -193,6 +194,7 @@ query_uniq <- sprintf("SELECT * FROM samples
       IN ('%1$s')",
       specimen_cond)
 
+message(query_uniq)
 uniq_sites_data <- dbGetQuery(dbConn, query_uniq)
 
 if(config$intsite_db_type == "mysql"){
