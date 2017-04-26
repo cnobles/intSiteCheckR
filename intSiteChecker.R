@@ -129,7 +129,7 @@ if(config$specimen_db_type == "mysql"){
 }else if(config$specimen_db_type == "sqlite"){
   pack <- suppressMessages(require("RSQLite"))
   if(!pack) stop("Could not load SQLite package.")
-  junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
+  #junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
   dbConn <- dbConnect(SQLite(), dbname = args$specimen_db_name)
   stopifnot(dbGetQuery(dbConn, "SELECT 1") == 1)
   rm(pack)
@@ -155,7 +155,7 @@ if(config$specimen_db_type == "mysql"){
   junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
   detach("package:RMySQL")
 }else if(config$specimen_db_type == "sqlite"){
-  junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
+  dbDisconnect(dbConn)
   detach("package:RSQLite")
 }
 rm(query, query_condition, query_selection, meta_cols, dbConn)
@@ -198,7 +198,7 @@ if(config$intsite_db_type == "mysql"){
   junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
   detach("package:RMySQL")
 }else if(config$intsite_db_type == "sqlite"){
-  junk <- sapply(dbListConnections(SQLite()), dbDisconnect)
+  dbDisconnect(dbConn)
   detach("package:RSQLite")
 }
 rm(query, query_condition, query_selection, meta_cols, dbConn)
