@@ -166,7 +166,7 @@ rm(query, query_condition, query_selection, meta_cols, dbConn)
 if(config$print_summary){
   pandoc.title("Specimen Summary")
   pandoc.table(
-    t(specimen_data), justify = c("left", rep("center", length(args$specimen))))
+    t(specimen_data), justify = c("left", rep("center", nrow(specimen_data))))
 }
 
 #' Download integration sites from INSPIIRED database
