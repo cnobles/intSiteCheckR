@@ -1,19 +1,19 @@
-# intSiteChecker: summarize specimen clonal abundance
+# intSiteCheckR: summarize specimen clonal abundance
 Generate a short summary from any processed specimen for the most abundant and/or specific clones. 
 
 ## Installation
-intSiteChecker runs completely in R environments and can be installed by cloning from this repository. Further, it depends on a number of other packages including: argparse, yaml, pander, RMySQL, GenomicRanges, dplyr, hiAnnotator, sonicLength, and gintools ("https://github.com/cnobles/gintools"). 
+intSiteCheckR runs completely in R environments and can be installed by cloning from this repository. Further, it depends on a number of other packages including: argparse, yaml, pander, RMySQL, GenomicRanges, dplyr, hiAnnotator, sonicLength, and gintools ("https://github.com/cnobles/gintools"). 
 ```
-git clone https://github.com/cnobles/intSiteChecker.git
+git clone https://github.com/cnobles/intSiteCheckR.git
 ```
 
 ## Brief Overview
-Using a specimen or list of specimens, intSiteChecker downloads all unique integration site data from a specified INSPIIRED database (either MySQL and/or SQLite, modify in configuration file). The data is then processed by breakpoint refinement methods and integration standardization methods before calculationg clonal abundances. The data is then filtered to the most abundant clones and returned in a short table to the user.
+Using a specimen or list of specimens, intSiteCheckR downloads all unique integration site data from a specified INSPIIRED database (either MySQL and/or SQLite, modify in configuration file). The data is then processed by breakpoint refinement methods and integration standardization methods before calculationg clonal abundances. The data is then filtered to the most abundant clones and returned in a short table to the user.
 
 ## Using intSiteChecker
-There are various features to intSiteChecker than allow it to serve multiple rolls. By default, given a single specimen number, intSiteChecker will return the top 10 most abundant clones in a short summary table, as show below:
+There are various features to intSiteCheckR than allow it to serve multiple rolls. By default, given a single specimen number, intSiteCheckR will return the top 10 most abundant clones in a short summary table, as show below:
 ```
-Rscript ~/path/to/intSiteChecker.R GTSP0927
+Rscript ~/path/to/intSiteCheck.R GTSP0927
 ...
 %
 % pPatient - m??? - PBMC - GTSP0927
@@ -34,15 +34,15 @@ Most Abundant Clones within Specimen GTSP0927
 ---------------------------------------------------
 *Note: This data has been scrambled from the original output, only used as an example.
 ```
-Further, several specimen numbers can be given to intSiteChecker, which will return a series of tables with the most abundant clones from each specimen. 
+Further, several specimen numbers can be given to intSiteCheckR, which will return a series of tables with the most abundant clones from each specimen. 
 ```
-Rscript ~/path/to/intSiteChecker.R GTSP0397 GTSP0398 GTSP0399
+Rscript ~/path/to/intSiteCheck.R GTSP0397 GTSP0398 GTSP0399
 ```
 Additionally, a position id (in the format of chr#[+-]position, ie. chr12-4270498) or list of position ids and be added to make sure integration sites matching the position ids or within a "fuzzy window" from a position id will be tracked in the data summary. If the integration sites given in position ids are the only desired results to return, then they can be exclusively processed, through this will remove the relative abundance of the sites with respect to the sample. 
 ```
-Rscript ~/path/to/intSiteChecker.R GTSP0397 -p chr19-28833957
-Rscript ~/path/to/intSiteChecker.R GTSP0397 -p chr19-28833957 chr17+2825892 
-Rscript ~/path/to/intSiteChecker.R GTSP0397 -p chr19-28833957 chr17+2825892 -e
+Rscript ~/path/to/intSiteCheck.R GTSP0397 -p chr19-28833957
+Rscript ~/path/to/intSiteCheck.R GTSP0397 -p chr19-28833957 chr17+2825892 
+Rscript ~/path/to/intSiteCheck.R GTSP0397 -p chr19-28833957 chr17+2825892 -e
 ```
 
 ## Arguments
