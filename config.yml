@@ -5,8 +5,8 @@ ref_genome : hg38
 
 # Databases housing integration site data (INSPIIRED structure) and specimen
 # information (sql format). Database types include 'mysql' or 'sqlite'. For 
-# mysql connections, groups connect to databases through additional config 
-# files. For sqlite, names function as database paths.
+# mysql connections, *_group connect to databases through additional config 
+# files. For sqlite, *_names function as database paths.
 intsite_db_type : mysql
 intsite_db_group: intsites_miseq
 intsite_db_name : ~/tmp/SQLite/intSites.db

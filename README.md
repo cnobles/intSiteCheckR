@@ -36,19 +36,22 @@ Most Abundant Clones within Specimen GTSP0927
 ```
 Further, several specimen numbers can be given to intSiteCheckR, which will return a series of tables with the most abundant clones from each specimen. 
 ```
-Rscript ~/path/to/intSiteCheck.R GTSP0397 GTSP0398 GTSP0399
+Rscript ~/path/to/intSiteCheck.R -S GTSP0397 GTSP0398 GTSP0399
 ```
 Additionally, a position id (in the format of chr#[+-]position, ie. chr12-4270498) or list of position ids and be added to make sure integration sites matching the position ids or within a "fuzzy window" from a position id will be tracked in the data summary. If the integration sites given in position ids are the only desired results to return, then they can be exclusively processed, through this will remove the relative abundance of the sites with respect to the sample. 
 ```
-Rscript ~/path/to/intSiteCheck.R GTSP0397 -p chr19-28833957
-Rscript ~/path/to/intSiteCheck.R GTSP0397 -p chr19-28833957 chr17+2825892 
-Rscript ~/path/to/intSiteCheck.R GTSP0397 -p chr19-28833957 chr17+2825892 -e
+Rscript ~/path/to/intSiteCheck.R -S GTSP0397 -p chr19-28833957
+Rscript ~/path/to/intSiteCheck.R -S GTSP0397 -p chr19-28833957 chr17+2825892 
+Rscript ~/path/to/intSiteCheck.R -S GTSP0397 -p chr19-28833957 chr17+2825892 -e
+Rscript ~/path/to/intSiteCheck.R -P p04409-10
 ```
 
 ## Arguments
-**specimen** [positional] specifies which specimen(s) to summarize. Multiple specimens can be separated by a space.
-
 **help** [-h, --help] returns usage and argument infomation.
+
+**specimen** [-S, --specimen] specifies which specimen(s) to summarize. Multiple specimens can be separated by a space.
+
+**patient** [-P, --patient] specifies which patient(s) to summarize. Multiple patients can be separated by a space. Overrides specimen selection. All specimens from patient will be queried.
 
 **position ids** [-p, --position_ids] specifies which genomic location(s) to focus and return in the summary along with most abundant clones. Multiple position ids can be separated by a space after the "-p" flag.
 
@@ -72,3 +75,19 @@ Rscript ~/path/to/intSiteCheck.R GTSP0397 -p chr19-28833957 chr17+2825892 -e
 
 ## Additional configurations
 Please refer to the config.yml file for additional configurations and documentation regarding the options.
+
+## Dependencies:
+
+* pander
+* argparse
+* yaml
+* GenomicRanges
+* dplyr
+* hiAnnotator
+* sonicLength
+* gintools
+* DBI
+* RMySQL (if using SQL database)
+* RSQLite (if using sqlite database)
+* r-parallel (for parallel processing)
+

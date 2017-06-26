@@ -3,6 +3,7 @@ program_short_description : "Check integration site data for a specimen or group
 
 # The following are descriptions of options.
 specimen : "Specimen ID number(s) to analyze. ie. GTSP1322."
+patient : "Patient identifier(s). Overrides specimen selection. Must be present within specimen database. ie. p04409-10."
 position_ids : "Position ID(s) in the format of chr#[+-]position. These positions will be included in the output along with the most abundant clones, unless the '-e' option is used. i.e. chr9+93127900."
 position_ids_exclusively : "This option will only analyze sites within the position ID(s) given, +/- the fuzzy_window distance. As this option will lead to a condensed analysis, relative abundances will not be calculated."
 abundance_method : "Method for calculating clonal abundance. Defaults to config option. Available options include: readCount, uniqFragLength, sonicAbundance."

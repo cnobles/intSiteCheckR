@@ -6,15 +6,19 @@
 #' and respecive information. Parameters and databases can be adjusted in the
 #' config.yml file. For efficient processing, only unique integration sites and 
 #' not multihits are analyzed.
+# Options and intitial setup ---------------------------------------------------
 options(stringsAsFactors = FALSE)
 suppressMessages(library("argparse"))
 suppressMessages(library("yaml"))
 suppressMessages(library("pander"))
+panderOptions("table.style", "multiline")
 
 code_dir <- dirname(
-  sub("--file=", "", grep("--file=", commandArgs(trailingOnly = FALSE), value = TRUE)))
+  sub(
+    "--file=", "",
+    grep("--file=", commandArgs(trailingOnly = FALSE), value = TRUE)))
 
-#' Set up and gather command line arguments
+# Gather command line arguments ------------------------------------------------
 config <- suppressWarnings(
   yaml.load_file(file.path(code_dir, "config.yml")))
 descript <- suppressWarnings(
@@ -22,8 +26,11 @@ descript <- suppressWarnings(
 
 parser <- ArgumentParser(description = descript$program_short_description)
 parser$add_argument(
-  "specimen", type = "character", nargs = "+", 
+  "-S", "--specimen", type = "character", nargs = "+", 
   help = descript$specimen)
+parser$add_argument(
+  "-P", "--patient", type = "character", nargs = "+",
+  help = descript$patient)
 parser$add_argument(
   "-p", "--position_ids", type = "character", nargs = "+",
   help = descript$position_ids)
@@ -48,12 +55,20 @@ parser$add_argument(
 parser$add_argument(
   "-o", "--output", nargs = 1, type = "character", help = descript$output)
 
-#' Dev command
-#cmdline <- c("GTSP0518", "GTSP0853", "GTSP1322", "-p", "chr12-4270498", "-e")
-#args <- parser$parse_args(cmdline)
+# Dev command - for debuging
+cmdline <- c("-P", "p03712-12")
+args <- parser$parse_args(cmdline)
 
-args <- parser$parse_args(commandArgs(trailingOnly = TRUE))
-args$specimen <- unique(unlist(strsplit(args$specimen, " ")))
+#args <- parser$parse_args(commandArgs(trailingOnly = TRUE))
+
+## Check and assign args to variables ==========================================
+if(!is.null(args$patient)){
+  args$query_by <- "Patient"
+}else{
+  args$query_by <- "Specimen"
+}
+if(!is.null(args$specimen)){
+  args$specimen <- unique(unlist(strsplit(args$specimen, " ")))}
 args$specimen_database <- ifelse(
   config$specimen_db_type == "mysql",
   config$specimen_db_group, config$specimen_db_name)
@@ -63,9 +78,9 @@ args$intsite_database <- ifelse(
 
 if(length(args$position_ids) > 0){
   args$position_ids <- unique(unlist(strsplit(args$position_ids, " ")))}
-args <- args[c("specimen", "position_ids", "position_ids_exclusively", 
-               "num_of_clones", "ref_genome", "abundance_method", 
-               "fuzzy_window", "cores", "intsite_database", 
+args <- args[c("specimen", "patient", "query_by", "position_ids", 
+               "position_ids_exclusively", "num_of_clones", "ref_genome", 
+               "abundance_method", "fuzzy_window", "cores", "intsite_database", 
                "specimen_database","output")]
 
 if(args$cores > 0){
@@ -79,7 +94,7 @@ if(args$cores > 0){
     code_dir, "support_scripts", "serial_intsite_processing.R"))
 }
 
-#' Print inputs to the console
+## Print inputs to the console =================================================
 if(config$print_params){
   input_table <- data.frame(
     "Variables" = paste0(names(args), " :"), 
@@ -110,7 +125,7 @@ if(config$print_inputs){
   }
 }
 
-#' Load additional dependencies
+# Load additional dependencies -------------------------------------------------
 add_dependencies <- c("GenomicRanges", "dplyr", "hiAnnotator", 
                       "sonicLength", "gintools", "DBI")
 
@@ -119,7 +134,7 @@ null <- suppressMessages(
 
 rm(null)
 
-#' Download specimen information from specimen database
+# Download specimen information from specimen database -------------------------
 if(config$specimen_db_type == "mysql"){
   pack <- suppressMessages(require("RMySQL"))
   if(!pack) stop("Could not load MySQL package.")
@@ -146,10 +161,20 @@ query_selection <- paste(
   paste(meta_cols, collapse = ", "),
   "FROM gtsp",
   sep = " ")
-specimen_cond <- paste(args$specimen, collapse = "', '")
-query_condition <- paste0("WHERE SpecimenAccNum IN ('", specimen_cond, "')")
+
+if(!is.null(args$specimen)){
+  specimen_cond <- paste(args$specimen, collapse = "', '")
+  query_condition <- paste0("WHERE SpecimenAccNum IN ('", specimen_cond, "')")
+  rm(specimen_con)
+}else if(!is.null(args$patient)){
+  patient_con <- paste(args$patient, collapse = "', '")
+  query_condition <- paste0("WHERE Patient IN ('", patient_con, "')")
+  rm(patient_con)
+}
+
 query <- paste(query_selection, query_condition, sep = " ")
-message(query)
+pander("\nSpecimen database query:\n")
+pander(paste0(query, "\n"))
 specimen_data <- dbGetQuery(dbConn, query)
 names(specimen_data) <- tolower(names(specimen_data))
 
@@ -162,14 +187,14 @@ if(config$specimen_db_type == "mysql"){
 }
 rm(query, query_condition, query_selection, meta_cols, dbConn)
 
-#' Print specimen information to the console
+## Print specimen information to the console ===================================
 if(config$print_summary){
   pandoc.title("Specimen Summary")
   pandoc.table(
     t(specimen_data), justify = c("left", rep("center", nrow(specimen_data))))
 }
 
-#' Download integration sites from INSPIIRED database
+# Download integration sites from INSPIIRED database ---------------------------
 if(config$intsite_db_type == "mysql"){
   pack <- suppressMessages(require("RMySQL"))
   if(!pack) stop("Could not load MySQL package.")
@@ -192,9 +217,10 @@ query_uniq <- sprintf("SELECT * FROM samples
       JOIN pcrbreakpoints ON pcrbreakpoints.siteID = sites.siteID
       WHERE SUBSTR(samples.sampleName, 1, INSTR(samples.sampleName, '-')-1)
       IN ('%1$s')",
-      specimen_cond)
+      paste(specimen_data$specimenaccnum, collapse = "', '"))
 
-message(query_uniq)
+pander("\nIntegration Site Database query:\n")
+pander(paste0(query_uniq, "\n"))
 uniq_sites_data <- dbGetQuery(dbConn, query_uniq)
 
 if(config$intsite_db_type == "mysql"){
@@ -204,9 +230,9 @@ if(config$intsite_db_type == "mysql"){
   dbDisconnect(dbConn)
   detach("package:RSQLite")
 }
-rm(query, query_condition, query_selection, meta_cols, dbConn)
+rm(query_uniq, dbConn)
 
-#' Gather reference materials: onco-related gene list, bad actors, ref_genes
+# Gather reference materials: onco-related gene list, bad actors, ref_genes ----
 ref_genes <- suppressWarnings(try(
   readRDS(config$ref_genes_path), silent = TRUE))
 if(class(ref_genes) != "GRanges" & config$print_deviations){
@@ -227,6 +253,7 @@ bad_actors <- unique(bad_actors_data[,"symbol"])
 gene_references <- list(
   "ref_genes" = ref_genes, "onco_genes" = onco_genes, "bad_actors" = bad_actors)
 
+# Exclusive filtering of genomic positions -------------------------------------
 #' If exclusively processing integration sites for specific position ids, then
 #' the uniq_sites_data needs to be filtered for sites near the input ids. 
 if(length(args$position_ids) > 0){
@@ -253,13 +280,14 @@ if(length(args$position_ids) > 0){
   }
 }
 
+# Process integrations sites (standardize / bp correction) ---------------------
 #' Process integration sites for analysis. This step includes refining 
 #' breakpoints, standardizing integration site positions, annotating against
 #' the ref_genes dataset (if available), and developing a gene id for the site.
 sites <- process_intsite_data(
   uniq_sites_data, specimen_data, args, config, gene_references)
 
-#' Print summary table(s) of the top clones or position ids
+# Print summary table(s) of the top clones or position ids ---------------------
 summary_table <- GenomicRanges::as.data.frame(sites$sites_final) %>%
   select(-seqnames, -start, -end, -width, -strand, -in_gene, -in_geneOrt, 
          -nearest_geneDist, -nearest_gene, -nearest_geneOrt, -gene_id_wo_mark,
@@ -309,7 +337,9 @@ if(!args$position_ids_exclusively){
     pandoc.title(paste0(paste(sum_tab[1, title_cols], collapse = " - "), "\n", 
                         "Most Abundant Clones within Specimen ", 
                         unique(sum_tab$specimen)))
-    pandoc.table(arrange(sum_tab[, table_cols], desc(estAbund)))
+    sum_tab <- arrange(sum_tab[, table_cols], desc(estAbund)) %>%
+      as.data.frame()
+    pandoc.table(sum_tab)
   })
 }else{
   tables <- lapply(summary_table, function(sum_tab){
@@ -318,7 +348,9 @@ if(!args$position_ids_exclusively){
     pandoc.title(paste0(paste(sum_tab[1, title_cols], collapse = " - "), "\n", 
                         "Most Abundant Clones within Specimen ", 
                         unique(sum_tab$specimen)))
-    pandoc.table(arrange(sum_tab[, table_cols], desc(estAbund)))
+    sum_tab <- arrange(sum_tab[, table_cols], desc(estAbund)) %>%
+      as.data.frame()
+    pandoc.table(sum_tab)
   })
 }
 
