@@ -56,10 +56,10 @@ parser$add_argument(
   "-o", "--output", nargs = 1, type = "character", help = descript$output)
 
 # Dev command - for debuging
-cmdline <- c("-P", "p03712-12")
-args <- parser$parse_args(cmdline)
+#cmdline <- c("-P", "p03712-12")
+#args <- parser$parse_args(cmdline)
 
-#args <- parser$parse_args(commandArgs(trailingOnly = TRUE))
+args <- parser$parse_args(commandArgs(trailingOnly = TRUE))
 
 ## Check and assign args to variables ==========================================
 if(!is.null(args$patient)){
