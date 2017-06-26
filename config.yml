@@ -1,4 +1,4 @@
-# Parameters and configuration for intsite_validation
+# Parameters and configuration for intSiteCheckR
 
 # Reference genome to analyze against.
 ref_genome : hg38
