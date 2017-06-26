@@ -9,10 +9,10 @@ ref_genome : hg38
 # files. For sqlite, names function as database paths.
 intsite_db_type : mysql
 intsite_db_group: intsites_miseq
-intsite_db_name : ~/intsite.db
+intsite_db_name : ~/tmp/SQLite/intSites.db
 specimen_db_type : mysql
 specimen_db_group : specimen_management
-specimen_db_name : ~/specimen.db
+specimen_db_name : ~/specimenManagement.db
 
 # Number of most abundant clones to return in summary. If fewer clones were 
 # present in the specimen, then all clones will be returned in the summary.
@@ -50,7 +50,7 @@ abundance_method : uniqFragLength
 # Gene lists for onco-related genes and bad actors
 oncogene_list : "http://bushmanlab.org/assets/doc/allOnco_Feb2017.tsv"
 bad_actor_list : "http://bushmanlab.org/assets/doc/humanLymph.tsv"
-ref_genes_path : "~/dev/util_files/hg38.refSeq.rds"
+ref_genes_path : "~/data/util_files/hg38.refSeq.rds"
 
 # Parallel processing may dramatically speed up the analysis of a given specimen
 # or set of specimens. The variable 'cores' can be modified to increase the 
